@@ -12,7 +12,7 @@ BEGIN{
 
 (NR % 3) == 0 {
   for (i in priority)
-    if ((comp[1][i] == 1) && (comp[2][i] == 1) && comp[3][i])
+    if (comp[1][i] && comp[2][i] && comp[3][i])
       tot += priority[i]
   delete comp
 }
