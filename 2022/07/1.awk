@@ -22,7 +22,6 @@ END {
   # add subdir totals
   for (i in up) {
     at = i
-    z = 0
     while (at != 1 ) {
       tot[up[at]] += tot[i]
       at = up[at]
