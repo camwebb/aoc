@@ -1,4 +1,3 @@
-BEGIN{ hx = hy = tx = ty = 0}
 {
   # print NR ") " $1, $2
   for (i=1; i++<=$2;) {
