@@ -9,7 +9,10 @@ The puzzle text “You'll need to find another way to keep your worry
 levels manageable” has an infinite number of algorithmic solutions!
 But only one will give the example conformation at rounds 1, 20, 1000,
 etc. Yet one cannot work backwards in this highly complex system to
-deduce which solution is likely.
+deduce which solution is likely. And the conformation in the example
+in Part 2 for round 1 and round 20 were different from the exmaple in
+Part 1, so we were not even trying to keep the divisor math the same
+while keeping the numbers from exploding.
 
 I tried: dividing by numbers other than 3, reseting worry levels for
 each item to initial values as they are transferred, tried resetting
