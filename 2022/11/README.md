@@ -32,4 +32,9 @@ knowledge.
 So, overall this puzzle was ~impossible for me to solve. Which is a
 frustrating recognition. And makes the whole competition less fun.
 
+----
+
+I also didn’t think of reading the input as one long regex! Cool:
+<https://www.reddit.com/r/adventofcode/comments/zifqmh/comment/izrc6pe/>
+
 
