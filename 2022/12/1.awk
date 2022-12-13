@@ -3,6 +3,12 @@ BEGIN{
   split("abcdefghijklmnopqrstuvwxyz",tmp,"")
   for (i in tmp)
     s2d[tmp[i]] = i+0
+  
+  incx["n"] =  0 ; incy["n"] = -1
+  incx["s"] =  0 ; incy["s"] =  1
+  incx["w"] = -1 ; incy["w"] =  0
+  incx["e"] =  1 ; incy["e"] =  0
+
   DEBUG = 1
 }
 
@@ -10,131 +16,123 @@ BEGIN{
   split($0,h[NR],"")
   for (i in h[NR]) {
     if (h[NR][i] == "S") {
-      x = i ; y = NR ; h[NR][i] = 1
+      x = i+0 ; y = NR ; h[NR][i+0] = 1  # AHA! remember indices are strings
     }
     else if (h[NR][i] == "E") {
-      dx = i ; dy = NR ; h[NR][i] = 26
+      dx = i+0 ; dy = NR 
       m[NR][i] = "E"
     }
     else {
       m[NR][i] = h[NR][i]
       h[NR][i] = s2d[h[NR][i]]
+      if (maxh < h[NR][i])
+        maxh = h[NR][i]
     }
   }
 }
 
 END{
+  h[dy][dx] = maxh # not necessary in real puzzle where E = 26
   my = length(h)
   mx = length(h[NR])
+
+  if (DEBUG > 1)
+    print "dx = " dx ", dy = " dy ", h[E] = " maxh "\n"
   
   # for (run = 1; run <= 100; run++)
   # { 
   # chose move
   trapped = 0 ; routel = 0
-  for (step = 1; step <= 100000 ; step++) {
+  for (step = 1; step <= 500 ; step++) {
     move()
     if ((x == dx && y == dy) || trapped)
       break
   }
 
   if (DEBUG > 0) {
-  #   print ""
-  #   for (r = 1; r <= my; r++) {
-  #     for (c = 1; c <= mx; c++)
-  #       printf "%02d ", h[r][c]
-  #     printf "\n"
-  #   }
-  #  print ""
-    for (r = 1; r <= my; r++) {
-      for (c = 1; c <= mx; c++)
+    for (r = 12; r <= 25; r++) {
+      for (c = 1; c <= 20; c++)
         printf "%s", m[r][c]
       printf "\n"
     }
   }
-  print step
+  print "\n" step
 }
 
-function move(   _p) {
+function move(   _p, _m) {
   _p = int(rand()*2)
   if (DEBUG > 1)
-    printf "%02d %02d/%02d\n", step, x, y
+    printf "%02d: at %03d/%03d (dx=%d dy=%d p=%d)\n" ,  \
+      step, x, y, dx, dy, _p
 
-  # target is east
-  if (x < dx) {
-    # try e
-    if (test(y, x+1, 0))
-      go(y,x+1, 0)
-    # then try s/n
-    else if (test(y+1, x, 0))
-      go(y+1,x, 0)
-    # then try other s/n
-    else if (test(y-1, x, 0))
-      go(y-1,x, 0)
-    # then w (away)
-    else if (test(y, x-1, 0))
-      go(y, x-1, 0)
-    # then backtrack and block that route
-    else if (test(priory, priorx, 1))
-      go(priory, priorx, 1)
-  }
+  #            sewn
+  #            swen
+  #       eswn  |  wsen
+  #       esnw  |  wsne
+  # ensw  ------+-------  wnse
+  # esnw  enws  |  wnes   wsne
+  #       ensw  |  wnse
+  #           nwes
+  #           news
 
-  # target is west
-  else if (x >= dx) {
-    # try w
-    if (test(y, x-1, 0))
-      go(y,x-1, 0)
-    # then try s/n
-    else if (test(y+1, x, 0))
-      go(y+1,x, 0)
-    # then try other s/n
-    else if (test(y-1, x, 0))
-      go(y-1,x, 0)
-    # then e (away)
-    else if (test(y, x+1, 0))
-      go(y, x+1, 0)
-    # then backtrack and block that route
-    else if (test(priory, priorx, 1))
-      go(priory, priorx, 1)
-  }
+  _m = ""
+  # testing logic:
 
-  # target is south
-  else if (y < dy) {
-    # try s
-    if (test(y+1, x, 0))
-      go(y+1,x, 0)
-    # then try e/w
-    else if (test(y, x+1, 0))
-      go(y,x+1, 0)
-    # then try other e/w
-    else if (test(y, x-1, 0))
-      go(y,x-1, 0)
-    # then n (away)
-    else if (test(y-1, x, 0))
-      go(y-1, x, 0)
-    # then backtrack and block that route
-    else if (test(priory, priorx, 1))
-      go(priory, priorx, 1)
-  }
+  if      (x < dx && y < dy && _p)
+    _m = "eswn"
+  else if (x < dx && y < dy && !_p)
+    _m = "esnw"
+  else if (x == dx && y < dy && _p)
+    _m = "sewn"
+  else if (x == dx && y < dy && !_p)
+    _m = "swen"
+  else if (x > dx && y < dy && _p)
+    _m = "wsen"
+  else if (x > dx && y < dy && !_p)
+    _m = "wsne"
 
-  # target is north
-  else if (y >= dy) {
-    # try n
-    if (test(y-1, x, 0))
-      go(y-1,x, 0)
-    # then try e/w
-    else if (test(y, x+1, 0))
-      go(y,x+1, 0)
-    # then try other e/w
-    else if (test(y, x-1, 0))
-      go(y,x-1, 0)
-    # then s (away)
-    else if (test(y+1, x, 0))
-      go(y+1, x, 0)
-    # then backtrack and block that route
-    else if (test(priory, priorx, 1))
-      go(priory, priorx, 1)
-  }
+  else if (x < dx && y == dy && _p)
+    _m = "ensw"
+  else if (x < dx && y == dy && !_p)
+    _m = "esnw"
+  else if (x > dx && y == dy && _p)
+    _m = "wnse"
+  else if (x > dx && y == dy && !_p)
+    _m = "wsne"
   
+  else if (x < dx && y >  dy && _p)
+    _m = "enws"
+  else if (x < dx && y >  dy && !_p)
+    _m = "ensw"
+  else if (x == dx && y >  dy && _p)
+    _m = "nwes"
+  else if (x == dx && y >  dy && !_p)
+    _m = "news"
+  else if (x > dx && y > dy && _p)
+    _m = "wnes"
+  else if (x > dx && y > dy && !_p)
+    _m = "wnse"
+  else
+    exit 1
+  
+  if (DEBUG > 1)
+    print "          order " _m 
+  
+  split(_m, _n, "")
+
+  if (test(y+incy[_n[1]], x+incx[_n[1]], 0))
+    go(y+incy[_n[1]], x+incx[_n[1]], 0)
+  else if (test(y+incy[_n[2]], x+incx[_n[2]], 0))
+    go(y+incy[_n[2]], x+incx[_n[2]], 0)
+  else if (test(y+incy[_n[3]], x+incx[_n[3]], 0))
+    go(y+incy[_n[3]], x+incx[_n[3]], 0)
+  else if (test(y+incy[_n[4]], x+incx[_n[4]], 0))
+    go(y+incy[_n[4]], x+incx[_n[4]], 0)
+  # then backtrack and block that route
+  else if (test(priory, priorx, 1))
+    go(priory, priorx, 1)
+  else
+    exit 1
 }
       
     
@@ -149,6 +147,7 @@ function test(_y, _x, _back,    _box) {
       _box = "⬓"
     else if ((_x == x) && (_y < y))
       _box = "⬒"
+    print "  test " _box
   }
 
   # if backtracking, test for having fallen in a hole
@@ -164,21 +163,21 @@ function test(_y, _x, _back,    _box) {
   # not actively back tracking, reject the way you came
   else if (_y == priory && _x == priorx) {
     if (DEBUG >1)
-      print "          retn " _box
+      print "          n_rtn " _box
     return 0
   }
   # is there i) a height (i.e. on the board), ii) an allowable height, and
-  # iii) not downwards, iv) not blocked, v) not the way you came
+  # iii) not downwards more than 1, iv) not blocked, v) not the way you came
   else if (!h[_y][_x] ||                              \
            (h[_y][_x] > (h[y][x]+1)) ||               \
-           (h[_y][_x] < h[y][x])     ||               \
+           (h[_y][_x] < (h[y][x]-1))     ||           \
            b[y][x][_y][_x]) {
     # => fail
     # block:
     b[y][x][_y][_x] = 1
     m[y][x] = m[y][x] _box
     if (DEBUG >1) {
-      print "          fail " _box
+      print "          block " _box
     }
     return 0
   }
@@ -199,7 +198,7 @@ function go(_y, _x, _retreat,    _dir) {
     m[y][x] = _dir
   }
   if (DEBUG > 1)
-    print "          " _dir " " (_retreat? "r":" ")
+    print "          moves " _dir " " (_retreat? "r":" ")
 
   priorx = x
   x = _x
@@ -208,7 +207,7 @@ function go(_y, _x, _retreat,    _dir) {
   routel++
 
   if (_retreat) {
-    routel-=2
+    routel -= 2
     b[y][x][priory][priorx] = 1    
   }
 }
